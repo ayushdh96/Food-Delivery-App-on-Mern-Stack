@@ -5,8 +5,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const Add = () => {
-
-
     const [image, setImage] = useState(false);
     const [data, setData] = useState({
         name: "",
@@ -15,6 +13,7 @@ const Add = () => {
         category: "Salad"
     });
 
+    // Handle form submission to add new food item
     const onSubmitHandler = async (event) => {
         event.preventDefault();
 
@@ -23,15 +22,18 @@ const Add = () => {
             return null;
         }
 
+        // Prepare form data with image
         const formData = new FormData();
         formData.append("name", data.name);
         formData.append("description", data.description);
         formData.append("price", Number(data.price));
         formData.append("category", data.category);
         formData.append("image", image);
+        
         const response = await axios.post(`${url}/api/food/add`, formData);
         if (response.data.success) {
             toast.success(response.data.message)
+            // Reset form
             setData({
                 name: "",
                 description: "",
@@ -45,6 +47,7 @@ const Add = () => {
         }
     }
 
+    // Update form data on input change
     const onChangeHandler = (event) => {
         const name = event.target.name;
         const value = event.target.value;

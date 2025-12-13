@@ -1,15 +1,15 @@
 import userModel from "../models/userModel.js"
 
-// add to user cart  
+// Add item to cart or increase quantity
 const addToCart = async (req, res) => {
    try {
       let userData = await userModel.findOne({_id:req.body.userId});
       let cartData = await userData.cartData;
       if (!cartData[req.body.itemId]) {
-         cartData[req.body.itemId] = 1;
+         cartData[req.body.itemId] = 1; // First time adding item
       }
       else {
-         cartData[req.body.itemId] += 1;
+         cartData[req.body.itemId] += 1; // Increase quantity
       }
       await userModel.findByIdAndUpdate(req.body.userId, {cartData});
       res.json({ success: true, message: "Added To Cart" });
@@ -19,13 +19,13 @@ const addToCart = async (req, res) => {
    }
 }
 
-// remove food from user cart
+// Remove item from cart or decrease quantity
 const removeFromCart = async (req, res) => {
    try {
       let userData = await userModel.findById(req.body.userId);
       let cartData = await userData.cartData;
       if (cartData[req.body.itemId] > 0) {
-         cartData[req.body.itemId] -= 1;
+         cartData[req.body.itemId] -= 1; // Decrease quantity
       }
       await userModel.findByIdAndUpdate(req.body.userId, {cartData});
       res.json({ success: true, message: "Removed From Cart" });
@@ -33,10 +33,9 @@ const removeFromCart = async (req, res) => {
       console.log(error);
       res.json({ success: false, message: "Error" })
    }
-
 }
 
-// get user cart
+// Get user's cart data
 const getCart = async (req, res) => {
    try {
       let userData = await userModel.findById(req.body.userId);
@@ -47,6 +46,5 @@ const getCart = async (req, res) => {
       res.json({ success: false, message: "Error" })
    }
 }
-
 
 export { addToCart, removeFromCart, getCart }

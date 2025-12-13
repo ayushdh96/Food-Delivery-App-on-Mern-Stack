@@ -1,17 +1,18 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js"
 import Stripe from "stripe";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-//config variables
+// Payment configuration
 const currency = "usd";
 const deliveryCharge = 5;
 const frontend_URL = 'https://full-stack-group-6-frontend.onrender.com';
 
-// Placing User Order for Frontend using stripe
+// Place order with Stripe payment
 const placeOrder = async (req, res) => {
-
     try {
+        // Create new order in database
         const newOrder = new orderModel({
             userId: req.body.userId,
             items: req.body.items,
@@ -19,19 +20,21 @@ const placeOrder = async (req, res) => {
             address: req.body.address,
         })
         await newOrder.save();
-        await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
+        await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} }); // Clear cart
 
+        // Prepare line items for Stripe
         const line_items = req.body.items.map((item) => ({
             price_data: {
                 currency: currency,
                 product_data: {
                     name: item.name
                 },
-                unit_amount: item.price * 100 
+                unit_amount: item.price * 100 // Convert to cents
             },
             quantity: item.quantity
         }))
 
+        // Add delivery charge
         line_items.push({
             price_data: {
                 currency: currency,
@@ -43,6 +46,7 @@ const placeOrder = async (req, res) => {
             quantity: 1
         })
 
+        // Create Stripe checkout session
         const session = await stripe.checkout.sessions.create({
             success_url: `${frontend_URL}/verify?success=true&orderId=${newOrder._id}`,
             cancel_url: `${frontend_URL}/verify?success=false&orderId=${newOrder._id}`,
@@ -58,19 +62,18 @@ const placeOrder = async (req, res) => {
     }
 }
 
-// Placing User Order for Frontend using stripe
+// Place order with Cash on Delivery
 const placeOrderCod = async (req, res) => {
-
     try {
         const newOrder = new orderModel({
             userId: req.body.userId,
             items: req.body.items,
             amount: req.body.amount,
             address: req.body.address,
-            payment: true,
+            payment: true, // COD is marked as paid
         })
         await newOrder.save();
-        await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
+        await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} }); // Clear cart
 
         res.json({ success: true, message: "Order Placed" });
 
@@ -80,7 +83,7 @@ const placeOrderCod = async (req, res) => {
     }
 }
 
-// Listing Order for Admin panel
+// Get all orders for admin panel
 const listOrders = async (req, res) => {
     try {
         const orders = await orderModel.find({});
@@ -91,7 +94,7 @@ const listOrders = async (req, res) => {
     }
 }
 
-// User Orders for Frontend
+// Get orders for specific user
 const userOrders = async (req, res) => {
     try {
         const orders = await orderModel.find({ userId: req.body.userId });
@@ -102,6 +105,7 @@ const userOrders = async (req, res) => {
     }
 }
 
+// Update order status (admin)
 const updateStatus = async (req, res) => {
     console.log(req.body);
     try {
@@ -110,9 +114,9 @@ const updateStatus = async (req, res) => {
     } catch (error) {
         res.json({ success: false, message: "Error" })
     }
-
 }
 
+// Verify Stripe payment after redirect
 const verifyOrder = async (req, res) => {
     const { orderId, success } = req.body;
     try {
@@ -121,13 +125,12 @@ const verifyOrder = async (req, res) => {
             res.json({ success: true, message: "Paid" })
         }
         else {
-            await orderModel.findByIdAndDelete(orderId)
+            await orderModel.findByIdAndDelete(orderId) // Delete unpaid order
             res.json({ success: false, message: "Not Paid" })
         }
     } catch (error) {
         res.json({ success: false, message: "Not  Verified" })
     }
-
 }
 
 export { placeOrder, listOrders, userOrders, updateStatus, verifyOrder, placeOrderCod }

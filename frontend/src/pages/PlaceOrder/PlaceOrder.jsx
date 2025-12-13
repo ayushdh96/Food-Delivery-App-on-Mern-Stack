@@ -7,8 +7,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 
 const PlaceOrder = () => {
-
-    const [payment, setPayment] = useState("cod")
+    const [payment, setPayment] = useState("cod") // Payment method selection
     const [data, setData] = useState({
         firstName: "",
         lastName: "",
@@ -22,17 +21,19 @@ const PlaceOrder = () => {
     })
 
     const { getTotalCartAmount, token, food_list, cartItems, url, setCartItems,currency,deliveryCharge } = useContext(StoreContext);
-
     const navigate = useNavigate();
 
+    // Update form data on input change
     const onChangeHandler = (event) => {
         const name = event.target.name
         const value = event.target.value
         setData(data => ({ ...data, [name]: value }))
     }
 
+    // Handle order placement
     const placeOrder = async (e) => {
         e.preventDefault()
+        // Build order items array
         let orderItems = [];
         food_list.map(((item) => {
             if (cartItems[item._id] > 0) {
@@ -46,17 +47,19 @@ const PlaceOrder = () => {
             items: orderItems,
             amount: getTotalCartAmount() + deliveryCharge,
         }
+        // Process based on payment method
         if (payment === "stripe") {
             let response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
             if (response.data.success) {
                 const { session_url } = response.data;
-                window.location.replace(session_url);
+                window.location.replace(session_url); // Redirect to Stripe
             }
             else {
                 toast.error("Something Went Wrong")
             }
         }
         else{
+            // Cash on Delivery
             let response = await axios.post(url + "/api/order/placecod", orderData, { headers: { token } });
             if (response.data.success) {
                 navigate("/myorders")
@@ -67,9 +70,9 @@ const PlaceOrder = () => {
                 toast.error("Something Went Wrong")
             }
         }
-
     }
 
+    // Redirect if not logged in or cart is empty
     useEffect(() => {
         if (!token) {
             toast.error("to place an order sign in first")

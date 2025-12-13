@@ -6,9 +6,8 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const LoginPopup = ({ setShowLogin }) => {
-
     const { setToken, url,loadCartData } = useContext(StoreContext)
-    const [currState, setCurrState] = useState("Sign Up");
+    const [currState, setCurrState] = useState("Sign Up"); // Toggle between login/signup
 
     const [data, setData] = useState({
         name: "",
@@ -16,12 +15,14 @@ const LoginPopup = ({ setShowLogin }) => {
         password: ""
     })
 
+    // Update form data on input change
     const onChangeHandler = (event) => {
         const name = event.target.name
         const value = event.target.value
         setData(data => ({ ...data, [name]: value }))
     }
 
+    // Handle login/signup form submission
     const onLogin = async (e) => {
         e.preventDefault()
 
@@ -36,7 +37,7 @@ const LoginPopup = ({ setShowLogin }) => {
         if (response.data.success) {
             setToken(response.data.token)
             localStorage.setItem("token", response.data.token)
-            loadCartData({token:response.data.token})
+            loadCartData({token:response.data.token}) // Load user's cart
             setShowLogin(false)
         }
         else {

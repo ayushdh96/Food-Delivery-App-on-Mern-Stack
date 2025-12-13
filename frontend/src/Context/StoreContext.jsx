@@ -1,10 +1,10 @@
 import { createContext, useEffect, useState } from "react";
 import { food_list, menu_list } from "../assets/assets";
 import axios from "axios";
+
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
-
     const url = "https://full-stack-group-6-backend.onrender.com"
     const [food_list, setFoodList] = useState([]);
     const [cartItems, setCartItems] = useState({});
@@ -12,6 +12,7 @@ const StoreContextProvider = (props) => {
     const currency = "$";
     const deliveryCharge = 5;
 
+    // Add item to cart
     const addToCart = async (itemId) => {
         if (!cartItems[itemId]) {
             setCartItems((prev) => ({ ...prev, [itemId]: 1 }));
@@ -19,11 +20,13 @@ const StoreContextProvider = (props) => {
         else {
             setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
         }
+        // Sync with backend if logged in
         if (token) {
             await axios.post(url + "/api/cart/add", { itemId }, { headers: { token } });
         }
     }
 
+    // Remove item from cart
     const removeFromCart = async (itemId) => {
         setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }))
         if (token) {
@@ -31,6 +34,7 @@ const StoreContextProvider = (props) => {
         }
     }
 
+    // Calculate total cart amount
     const getTotalCartAmount = () => {
         let totalAmount = 0;
         for (const item in cartItems) {
@@ -42,21 +46,23 @@ const StoreContextProvider = (props) => {
             } catch (error) {
                 
             }
-            
         }
         return totalAmount;
     }
 
+    // Fetch food items from API
     const fetchFoodList = async () => {
         const response = await axios.get(url + "/api/food/list");
         setFoodList(response.data.data)
     }
 
+    // Load user's cart from backend
     const loadCartData = async (token) => {
         const response = await axios.post(url + "/api/cart/get", {}, { headers: token });
         setCartItems(response.data.cartData);
     }
 
+    // Initialize data on component mount
     useEffect(() => {
         async function loadData() {
             await fetchFoodList();
@@ -89,7 +95,6 @@ const StoreContextProvider = (props) => {
             {props.children}
         </StoreContext.Provider>
     )
-
 }
 
 export default StoreContextProvider;

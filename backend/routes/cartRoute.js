@@ -4,6 +4,7 @@ import authMiddleware from '../middleware/auth.js';
 
 const cartRouter = express.Router();
 
+// Cart routes - all require authentication
 cartRouter.post("/get",authMiddleware,getCart);
 cartRouter.post("/add",authMiddleware,addToCart);
 cartRouter.post("/remove",authMiddleware,removeFromCart);

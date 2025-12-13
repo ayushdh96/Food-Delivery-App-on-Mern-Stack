@@ -5,19 +5,20 @@ import axios from 'axios';
 import { assets, url, currency } from '../../assets/assets';
 
 const Order = () => {
-
   const [orders, setOrders] = useState([]);
 
+  // Fetch all orders from API
   const fetchAllOrders = async () => {
     const response = await axios.get(`${url}/api/order/list`)
     if (response.data.success) {
-      setOrders(response.data.data.reverse());
+      setOrders(response.data.data.reverse()); // Show newest first
     }
     else {
       toast.error("Error")
     }
   }
 
+  // Update order status
   const statusHandler = async (event, orderId) => {
     console.log(event, orderId);
     const response = await axios.post(`${url}/api/order/status`, {
@@ -25,11 +26,11 @@ const Order = () => {
       status: event.target.value
     })
     if (response.data.success) {
-      await fetchAllOrders();
+      await fetchAllOrders(); // Refresh orders after update
     }
   }
 
-
+  // Load orders on component mount
   useEffect(() => {
     fetchAllOrders();
   }, [])
@@ -38,6 +39,7 @@ const Order = () => {
     <div className='order add'>
       <h3>Order Page</h3>
       <div className="order-list">
+        {/* Display all orders */}
         {orders.map((order, index) => (
           <div key={index} className='order-item'>
             <img src={assets.parcel_icon} alt="" />
@@ -61,6 +63,7 @@ const Order = () => {
             </div>
             <p>Items : {order.items.length}</p>
             <p>{currency}{order.amount}</p>
+            {/* Order status dropdown */}
             <select onChange={(e) => statusHandler(e, order._id)} value={order.status} name="" id="">
               <option value="Food Processing">Food Processing</option>
               <option value="Out for delivery">Out for delivery</option>

@@ -5,9 +5,9 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const List = () => {
-
   const [list, setList] = useState([]);
 
+  // Fetch all food items from API
   const fetchList = async () => {
     const response = await axios.get(`${url}/api/food/list`)
     if (response.data.success) {
@@ -18,11 +18,12 @@ const List = () => {
     }
   }
 
+  // Remove food item
   const removeFood = async (foodId) => {
     const response = await axios.post(`${url}/api/food/remove`, {
       id: foodId
     })
-    await fetchList();
+    await fetchList(); // Refresh list after deletion
     if (response.data.success) {
       toast.success(response.data.message);
     }
@@ -31,6 +32,7 @@ const List = () => {
     }
   }
 
+  // Load food items on component mount
   useEffect(() => {
     fetchList();
   }, [])
@@ -46,6 +48,7 @@ const List = () => {
           <b>Price</b>
           <b>Action</b>
         </div>
+        {/* Display food items */}
         {list.map((item, index) => {
           return (
             <div key={index} className='list-table-format'>
