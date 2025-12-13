@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant Admin
+    participant AdminPanel
+    participant Backend
+    participant Database
+
+    %% Admin View Orders
+    Note over Admin,Database: Admin - View All Orders Flow
+    Admin->>AdminPanel: Navigate to Orders page
+    AdminPanel->>Backend: GET /api/order/list
+    Backend->>Database: Fetch all orders
+    Database-->>Backend: All orders array
+    Backend-->>AdminPanel: Return orders
+    AdminPanel-->>Admin: Display orders with details
+
+    %% Admin Update Order Status
+    Note over Admin,Database: Admin - Update Order Status Flow
+    Admin->>AdminPanel: Change order status dropdown
+    AdminPanel->>Backend: POST /api/order/status {orderId, status}
+    Backend->>Database: Find and update order status
+    Database-->>Backend: Order updated
+    Backend-->>AdminPanel: Success response
+    AdminPanel->>Backend: GET /api/order/list (refresh)
+    Backend->>Database: Fetch updated orders
+    Database-->>Backend: Updated orders array
+    Backend-->>AdminPanel: Return updated orders
+    AdminPanel-->>Admin: Display updated order list
+
+    %% Admin Monitor Order Details
+    Note over Admin,Database: Admin - Monitor Order Details Flow
+    Admin->>AdminPanel: View order in list
+    AdminPanel->>AdminPanel: Display order items
+    AdminPanel->>AdminPanel: Display customer address
+    AdminPanel->>AdminPanel: Display payment status
+    AdminPanel->>AdminPanel: Display total amount
+    AdminPanel-->>Admin: Show complete order information

@@ -1,0 +1,43 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Database
+
+    %% Browse Food Items
+    Note over User,Database: Browse Food Items Flow
+    User->>Frontend: Visit home page
+    Frontend->>Backend: GET /api/food/list
+    Backend->>Database: Fetch all food items
+    Database-->>Backend: Food items array
+    Backend-->>Frontend: Return food list
+    Frontend->>Frontend: Display by categories
+    Frontend-->>User: Show food items
+
+    %% Add to Cart Flow
+    Note over User,Database: Add to Cart Flow
+    User->>Frontend: Click add to cart
+    Frontend->>Frontend: Update local cart state
+    Frontend->>Backend: POST /api/cart/add (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Find user
+    Database-->>Backend: User data
+    Backend->>Backend: Update cartData
+    Backend->>Database: Save updated cart
+    Database-->>Backend: Cart updated
+    Backend-->>Frontend: Success response
+    Frontend-->>User: Cart updated notification
+
+    %% View Cart
+    Note over User,Database: View Cart Flow
+    User->>Frontend: Navigate to cart page
+    Frontend->>Frontend: Calculate totals from local state
+    Frontend-->>User: Display cart items with totals
+    User->>Frontend: Click remove item
+    Frontend->>Frontend: Update local cart state
+    Frontend->>Backend: POST /api/cart/remove (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Update user cartData
+    Database-->>Backend: Cart updated
+    Backend-->>Frontend: Success response
+    Frontend-->>User: Cart updated

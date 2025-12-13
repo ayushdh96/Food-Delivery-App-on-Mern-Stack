@@ -1,0 +1,46 @@
+sequenceDiagram
+    participant Admin
+    participant AdminPanel
+    participant Backend
+    participant Database
+    participant FileSystem
+
+    %% Admin Add Food Item
+    Note over Admin,Database: Admin - Add Food Item Flow
+    Admin->>AdminPanel: Navigate to Add page
+    Admin->>AdminPanel: Fill food details & upload image
+    Admin->>AdminPanel: Submit form
+    AdminPanel->>Backend: POST /api/food/add (FormData)
+    Backend->>Backend: Multer processes image
+    Backend->>FileSystem: Save image to uploads/
+    FileSystem-->>Backend: Image saved
+    Backend->>Database: Create food document
+    Database-->>Backend: Food created
+    Backend-->>AdminPanel: Success response
+    AdminPanel-->>Admin: Show success notification
+
+    %% Admin View Food List
+    Note over Admin,Database: Admin - View Food List Flow
+    Admin->>AdminPanel: Navigate to List page
+    AdminPanel->>Backend: GET /api/food/list
+    Backend->>Database: Fetch all food items
+    Database-->>Backend: Food items array
+    Backend-->>AdminPanel: Return food list
+    AdminPanel-->>Admin: Display food table
+
+    %% Admin Delete Food Item
+    Note over Admin,FileSystem: Admin - Delete Food Item Flow
+    Admin->>AdminPanel: Click delete on item
+    AdminPanel->>Backend: POST /api/food/remove {id}
+    Backend->>Database: Find food by id
+    Database-->>Backend: Food data
+    Backend->>FileSystem: Delete image from uploads/
+    FileSystem-->>Backend: Image deleted
+    Backend->>Database: Delete food document
+    Database-->>Backend: Food deleted
+    Backend-->>AdminPanel: Success response
+    AdminPanel->>Backend: GET /api/food/list (refresh)
+    Backend->>Database: Fetch updated list
+    Database-->>Backend: Updated food items
+    Backend-->>AdminPanel: Return updated list
+    AdminPanel-->>Admin: Display updated table

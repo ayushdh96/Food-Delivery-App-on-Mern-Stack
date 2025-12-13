@@ -1,0 +1,161 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Database
+    participant Stripe
+    participant Admin
+
+    %% User Registration Flow
+    Note over User,Database: User Registration Flow
+    User->>Frontend: Enter registration details
+    Frontend->>Frontend: Validate email format & password
+    Frontend->>Backend: POST /api/user/register
+    Backend->>Backend: Check if user exists
+    Backend->>Backend: Hash password (bcrypt)
+    Backend->>Database: Save new user
+    Database-->>Backend: User created
+    Backend->>Backend: Generate JWT token
+    Backend-->>Frontend: Return token
+    Frontend->>Frontend: Store token in localStorage
+    Frontend-->>User: Registration successful
+
+    %% User Login Flow
+    Note over User,Database: User Login Flow
+    User->>Frontend: Enter login credentials
+    Frontend->>Backend: POST /api/user/login
+    Backend->>Database: Find user by email
+    Database-->>Backend: User data
+    Backend->>Backend: Compare password hash
+    Backend->>Backend: Generate JWT token
+    Backend-->>Frontend: Return token
+    Frontend->>Frontend: Store token in localStorage
+    Frontend->>Backend: POST /api/cart/get (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Fetch user cart data
+    Database-->>Backend: Cart data
+    Backend-->>Frontend: Return cart data
+    Frontend-->>User: Login successful
+
+    %% Browse Food Items
+    Note over User,Database: Browse Food Items
+    User->>Frontend: Visit home page
+    Frontend->>Backend: GET /api/food/list
+    Backend->>Database: Fetch all food items
+    Database-->>Backend: Food items array
+    Backend-->>Frontend: Return food list
+    Frontend->>Frontend: Display by categories
+    Frontend-->>User: Show food items
+
+    %% Add to Cart Flow
+    Note over User,Database: Add to Cart Flow
+    User->>Frontend: Click add to cart
+    Frontend->>Frontend: Update local cart state
+    Frontend->>Backend: POST /api/cart/add (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Find user
+    Database-->>Backend: User data
+    Backend->>Backend: Update cartData
+    Backend->>Database: Save updated cart
+    Database-->>Backend: Cart updated
+    Backend-->>Frontend: Success response
+    Frontend-->>User: Cart updated notification
+
+    %% Place Order with Stripe
+    Note over User,Stripe: Place Order - Stripe Payment
+    User->>Frontend: Navigate to checkout
+    Frontend->>Frontend: Check if authenticated
+    User->>Frontend: Fill delivery information
+    User->>Frontend: Select Stripe payment
+    User->>Frontend: Submit order
+    Frontend->>Backend: POST /api/order/place (with token & order data)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Create new order
+    Database-->>Backend: Order created
+    Backend->>Database: Clear user cart
+    Backend->>Stripe: Create checkout session
+    Stripe-->>Backend: Session URL
+    Backend-->>Frontend: Return session URL
+    Frontend->>Stripe: Redirect to payment page
+    User->>Stripe: Enter payment details
+    Stripe-->>Frontend: Redirect to success/cancel URL
+    Frontend->>Backend: POST /api/order/verify
+    Backend->>Database: Update payment status
+    Database-->>Backend: Order updated
+    Backend-->>Frontend: Verification response
+    Frontend-->>User: Order confirmation
+
+    %% Place Order with COD
+    Note over User,Database: Place Order - Cash on Delivery
+    User->>Frontend: Select COD payment
+    User->>Frontend: Submit order
+    Frontend->>Backend: POST /api/order/placecod (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Create order (payment: true)
+    Database-->>Backend: Order created
+    Backend->>Database: Clear user cart
+    Database-->>Backend: Cart cleared
+    Backend-->>Frontend: Success response
+    Frontend->>Frontend: Navigate to My Orders
+    Frontend-->>User: Order placed successfully
+
+    %% View My Orders
+    Note over User,Database: View Order History
+    User->>Frontend: Navigate to My Orders
+    Frontend->>Backend: POST /api/order/userorders (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Find orders by userId
+    Database-->>Backend: User orders
+    Backend-->>Frontend: Return orders
+    Frontend-->>User: Display order history
+
+    %% Admin Add Food Item
+    Note over Admin,Database: Admin - Add Food Item
+    Admin->>Admin: Navigate to Add page
+    Admin->>Admin: Fill food details & upload image
+    Admin->>Backend: POST /api/food/add (FormData)
+    Backend->>Backend: Multer processes image
+    Backend->>Backend: Save image to uploads/
+    Backend->>Database: Create food document
+    Database-->>Backend: Food created
+    Backend-->>Admin: Success response
+    Admin-->>Admin: Show success notification
+
+    %% Admin View/Delete Food Items
+    Note over Admin,Database: Admin - Manage Food List
+    Admin->>Admin: Navigate to List page
+    Admin->>Backend: GET /api/food/list
+    Backend->>Database: Fetch all food items
+    Database-->>Backend: Food items
+    Backend-->>Admin: Return food list
+    Admin-->>Admin: Display food table
+    Admin->>Admin: Click delete on item
+    Admin->>Backend: POST /api/food/remove {id}
+    Backend->>Database: Find food by id
+    Database-->>Backend: Food data
+    Backend->>Backend: Delete image from uploads/
+    Backend->>Database: Delete food document
+    Database-->>Backend: Food deleted
+    Backend-->>Admin: Success response
+    Admin->>Backend: GET /api/food/list (refresh)
+    Backend->>Database: Fetch updated list
+    Database-->>Backend: Updated food items
+    Backend-->>Admin: Return updated list
+
+    %% Admin Manage Orders
+    Note over Admin,Database: Admin - Manage Orders
+    Admin->>Admin: Navigate to Orders page
+    Admin->>Backend: GET /api/order/list
+    Backend->>Database: Fetch all orders
+    Database-->>Backend: All orders
+    Backend-->>Admin: Return orders
+    Admin-->>Admin: Display orders with details
+    Admin->>Admin: Change order status dropdown
+    Admin->>Backend: POST /api/order/status {orderId, status}
+    Backend->>Database: Update order status
+    Database-->>Backend: Order updated
+    Backend-->>Admin: Success response
+    Admin->>Backend: GET /api/order/list (refresh)
+    Backend->>Database: Fetch updated orders
+    Database-->>Backend: Updated orders
+    Backend-->>Admin: Return updated orders

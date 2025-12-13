@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Database
+
+    %% User Registration Flow
+    Note over User,Database: User Registration Flow
+    User->>Frontend: Enter registration details
+    Frontend->>Frontend: Validate email format & password
+    Frontend->>Backend: POST /api/user/register
+    Backend->>Backend: Check if user exists
+    Backend->>Backend: Hash password (bcrypt)
+    Backend->>Database: Save new user
+    Database-->>Backend: User created
+    Backend->>Backend: Generate JWT token
+    Backend-->>Frontend: Return token
+    Frontend->>Frontend: Store token in localStorage
+    Frontend-->>User: Registration successful
+
+    %% User Login Flow
+    Note over User,Database: User Login Flow
+    User->>Frontend: Enter login credentials
+    Frontend->>Backend: POST /api/user/login
+    Backend->>Database: Find user by email
+    Database-->>Backend: User data
+    Backend->>Backend: Compare password hash
+    Backend->>Backend: Generate JWT token
+    Backend-->>Frontend: Return token
+    Frontend->>Frontend: Store token in localStorage
+    Frontend->>Backend: POST /api/cart/get (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Fetch user cart data
+    Database-->>Backend: Cart data
+    Backend-->>Frontend: Return cart data
+    Frontend-->>User: Login successful

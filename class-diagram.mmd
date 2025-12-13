@@ -1,0 +1,186 @@
+classDiagram
+    %% ========== BACKEND MODELS ==========
+    
+    class userModel {
+        +String name
+        +String email
+        +String password
+        +Object cartData
+    }
+
+    class foodModel {
+        +String name
+        +String description
+        +Number price
+        +String image
+        +String category
+    }
+
+    class orderModel {
+        +String userId
+        +Array items
+        +Number amount
+        +Object address
+        +String status
+        +Date date
+        +Boolean payment
+    }
+
+    %% ========== BACKEND CONTROLLERS ==========
+
+    class userController {
+        +createToken(id)
+        +loginUser(req, res)
+        +registerUser(req, res)
+    }
+
+    class foodController {
+        +listFood(req, res)
+        +addFood(req, res)
+        +removeFood(req, res)
+    }
+
+    class cartController {
+        +addToCart(req, res)
+        +removeFromCart(req, res)
+        +getCart(req, res)
+    }
+
+    class orderController {
+        +placeOrder(req, res)
+        +placeOrderCod(req, res)
+        +listOrders(req, res)
+        +userOrders(req, res)
+        +updateStatus(req, res)
+        +verifyOrder(req, res)
+    }
+
+    %% ========== MIDDLEWARE ==========
+
+    class authMiddleware {
+        +authMiddleware(req, res, next)
+    }
+
+    %% ========== FRONTEND CONTEXT ==========
+
+    class StoreContext {
+        -String url
+        -Array~foodModel~ food_list
+        -Array menu_list
+        -Object cartItems
+        -String token
+        -String currency
+        -Number deliveryCharge
+        +addToCart(itemId)
+        +removeFromCart(itemId)
+        +getTotalCartAmount()
+        +fetchFoodList()
+        +loadCartData(token)
+        +setFoodList(list)
+        +setCartItems(items)
+        +setToken(token)
+    }
+
+    %% ========== FRONTEND COMPONENTS ==========
+
+    class Navbar {
+        -String menu
+        -Function setShowLogin
+        +logout()
+    }
+
+    class LoginPopup {
+        -String currState
+        -Object data
+        -Function setShowLogin
+        +onChangeHandler(event)
+        +onLogin(e)
+    }
+
+    class FoodItem {
+        -String image
+        -String name
+        -Number price
+        -String desc
+        -String id
+        -Number itemCount
+    }
+
+    class Cart {
+        +navigate()
+    }
+
+    class PlaceOrder {
+        -String payment
+        -Object data
+        +onChangeHandler(event)
+        +placeOrder(e)
+    }
+
+    %% ========== ADMIN COMPONENTS ==========
+
+    class Add {
+        -File image
+        -Object data
+        +onChangeHandler(event)
+        +onSubmitHandler(event)
+    }
+
+    class List {
+        -Array~foodModel~ list
+        +fetchList()
+        +removeFood(foodId)
+    }
+
+    class Orders {
+        -Array~orderModel~ orders
+        +fetchAllOrders()
+        +statusHandler(event, orderId)
+    }
+
+    %% ========== RELATIONSHIPS: Models ==========
+    
+    userModel "1" -- "0..*" orderModel : places
+    userModel "1" -- "0..*" foodModel : has in cartData
+    orderModel "1" *-- "1..*" foodModel : contains items
+
+    %% ========== RELATIONSHIPS: Controllers to Models ==========
+    
+    userController ..> userModel : uses
+    foodController ..> foodModel : uses
+    cartController ..> userModel : uses
+    orderController ..> orderModel : uses
+    orderController ..> userModel : uses
+
+    %% ========== RELATIONSHIPS: Middleware ==========
+    
+    authMiddleware ..> userController : validates token
+    cartController ..> authMiddleware : protected by
+    orderController ..> authMiddleware : protected by
+
+    %% ========== RELATIONSHIPS: Frontend Context ==========
+    
+    StoreContext ..> foodModel : fetches
+    StoreContext ..> userModel : manages cart
+    StoreContext ..> orderModel : creates
+
+    %% ========== RELATIONSHIPS: Frontend Components ==========
+    
+    Navbar ..> StoreContext : uses
+    LoginPopup ..> StoreContext : uses
+    FoodItem ..> StoreContext : uses
+    Cart ..> StoreContext : uses
+    PlaceOrder ..> StoreContext : uses
+
+    %% ========== RELATIONSHIPS: Admin Components ==========
+    
+    Add ..> foodModel : creates
+    List ..> foodModel : lists/deletes
+    Orders ..> orderModel : manages
+
+    %% ========== NOTES ==========
+    
+    note for userModel "Schema Fields:\n- minimize: false\n- unique email\n- cartData default: {}"
+    note for orderModel "Default status: 'Food Processing'\nDefault payment: false\nDefault date: Date.now()"
+    note for authMiddleware "Extracts userId from JWT\nAttaches to req.body.userId"
+    note for StoreContext "React Context API\nGlobal state for entire app"

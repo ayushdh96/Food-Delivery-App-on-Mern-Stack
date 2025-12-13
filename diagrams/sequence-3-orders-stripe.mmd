@@ -1,0 +1,54 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Database
+    participant Stripe
+
+    %% Place Order with Stripe
+    Note over User,Stripe: Place Order - Stripe Payment Flow
+    User->>Frontend: Navigate to checkout
+    Frontend->>Frontend: Check if authenticated
+    User->>Frontend: Fill delivery information
+    User->>Frontend: Select Stripe payment
+    User->>Frontend: Submit order
+    Frontend->>Backend: POST /api/order/place (with token & order data)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Create new order
+    Database-->>Backend: Order created
+    Backend->>Database: Clear user cart
+    Backend->>Stripe: Create checkout session
+    Stripe-->>Backend: Session URL
+    Backend-->>Frontend: Return session URL
+    Frontend->>Stripe: Redirect to payment page
+    User->>Stripe: Enter payment details
+    Stripe-->>Frontend: Redirect to success/cancel URL
+    Frontend->>Backend: POST /api/order/verify
+    Backend->>Database: Update payment status
+    Database-->>Backend: Order updated
+    Backend-->>Frontend: Verification response
+    Frontend-->>User: Order confirmation
+
+    %% Place Order with COD
+    Note over User,Database: Place Order - Cash on Delivery Flow
+    User->>Frontend: Select COD payment
+    User->>Frontend: Submit order
+    Frontend->>Backend: POST /api/order/placecod (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Create order (payment: true)
+    Database-->>Backend: Order created
+    Backend->>Database: Clear user cart
+    Database-->>Backend: Cart cleared
+    Backend-->>Frontend: Success response
+    Frontend->>Frontend: Navigate to My Orders
+    Frontend-->>User: Order placed successfully
+
+    %% View My Orders
+    Note over User,Database: View Order History Flow
+    User->>Frontend: Navigate to My Orders
+    Frontend->>Backend: POST /api/order/userorders (with token)
+    Backend->>Backend: Verify JWT token
+    Backend->>Database: Find orders by userId
+    Database-->>Backend: User orders
+    Backend-->>Frontend: Return orders
+    Frontend-->>User: Display order history with status
