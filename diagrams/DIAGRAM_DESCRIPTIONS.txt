@@ -1,0 +1,53 @@
+MERMAID DIAGRAM DESCRIPTIONS
+============================
+
+This document provides concise descriptions for all the Mermaid diagrams created for the Food Delivery Application.
+
+---
+
+1. SEQUENCE DIAGRAM 1: AUTHENTICATION (sequence-1-authentication.mmd)
+   
+   This diagram illustrates the user authentication flows including registration, login, and logout processes.
+   It shows how the frontend interacts with the backend API to create new user accounts with encrypted passwords,
+   authenticate existing users with JWT tokens, and handle logout by clearing the authentication state.
+
+
+2. SEQUENCE DIAGRAM 2: BROWSE & CART (sequence-2-browse-cart.mmd)
+   
+   This diagram captures the core shopping experience flows: browsing the food catalog, adding items to cart,
+   and removing items from cart. It demonstrates how the application fetches food items from the database,
+   updates the cart state both locally and on the server, and maintains cart persistence for logged-in users.
+
+
+3. SEQUENCE DIAGRAM 3: ORDERS & STRIPE PAYMENT (sequence-3-orders-stripe.mmd)
+   
+   This diagram details the order placement and payment processing flows. It shows the Stripe integration for
+   online payments including session creation and payment verification, the cash-on-delivery alternative flow,
+   and how users can view their order history with real-time status updates.
+
+
+4. SEQUENCE DIAGRAM 4: ADMIN FOOD MANAGEMENT (sequence-4-admin-food.mmd)
+   
+   This diagram represents the administrative functions for managing the food catalog. It illustrates how
+   administrators can add new food items with image uploads using Multer, view the complete list of available
+   items, and remove items from the database when needed.
+
+
+5. SEQUENCE DIAGRAM 5: ADMIN ORDER MANAGEMENT (sequence-5-admin-orders.mmd)
+   
+   This diagram shows the order management workflow from the administrator's perspective. It demonstrates
+   how admins can view all customer orders with their details and update order statuses (e.g., from "Food Processing"
+   to "Out for delivery" to "Delivered") to keep customers informed about their order progress.
+
+
+6. CLASS DIAGRAM: SYSTEM ARCHITECTURE (class-diagram.mmd)
+   
+   This comprehensive class diagram depicts the complete system architecture including all models, controllers,
+   context providers, and components. It shows the relationships between MongoDB models (User, Food, Order),
+   backend controllers handling business logic, the React context managing global state, and the frontend/admin
+   components. The diagram includes attributes, methods, and multiplicity relationships to provide a complete
+   structural view of the application.
+
+---
+
+End of Document
